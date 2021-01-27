@@ -151,6 +151,26 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
+
+        it('should allow a custom operator with array', () => {
+          const query = { filter: ['foo||custom||12345,6789'] };
+          const expected = [{ field: 'foo', operator: 'custom', value: [12345, 6789] }];
+
+          const test = qp.parseQuery(query, {
+            custom: { isArray: true },
+          });
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+
+        it('should allow a custom operator without array', () => {
+          const query = { filter: ['foo||custom||12345'] };
+          const expected = [{ field: 'foo', operator: 'custom', value: 12345 }];
+
+          const test = qp.parseQuery(query, {
+            custom: { isArray: false },
+          });
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
       });
 
       describe('#parse or', () => {

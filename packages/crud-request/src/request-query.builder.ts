@@ -1,14 +1,18 @@
 import {
   hasValue,
-  isObject,
-  isString,
   isArrayFull,
   isNil,
+  isObject,
+  isString,
   isUndefined,
 } from '@nestjsx/util';
 import { stringify } from 'qs';
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import {
+  CreateQueryParams,
+  CustomOperators,
+  RequestQueryBuilderOptions,
+} from './interfaces';
 import {
   validateCondition,
   validateFields,
@@ -70,9 +74,12 @@ export class RequestQueryBuilder {
     return RequestQueryBuilder._options;
   }
 
-  static create(params?: CreateQueryParams): RequestQueryBuilder {
+  static create(
+    params?: CreateQueryParams,
+    customOperators?: CustomOperators,
+  ): RequestQueryBuilder {
     const qb = new RequestQueryBuilder();
-    return isObject(params) ? qb.createFromParams(params) : qb;
+    return isObject(params) ? qb.createFromParams(params, customOperators) : qb;
   }
 
   get options(): RequestQueryBuilderOptions {
@@ -110,13 +117,19 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
-    this.setCondition(f, 'filter');
+  setFilter(
+    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+    customOperators?: CustomOperators,
+  ): this {
+    this.setCondition(f, 'filter', customOperators);
     return this;
   }
 
-  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
-    this.setCondition(f, 'or');
+  setOr(
+    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+    customOperators?: CustomOperators,
+  ): this {
+    this.setCondition(f, 'or', customOperators);
     return this;
   }
 
@@ -169,9 +182,10 @@ export class RequestQueryBuilder {
   cond(
     f: QueryFilter | QueryFilterArr,
     cond: 'filter' | 'or' | 'search' = 'search',
+    customOperators?: CustomOperators,
   ): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
-    validateCondition(filter, cond);
+    validateCondition(filter, cond, customOperators);
     const d = this.options.delim;
 
     return (
@@ -199,11 +213,14 @@ export class RequestQueryBuilder {
     return sort.field + ds + sort.order;
   }
 
-  private createFromParams(params: CreateQueryParams): this {
+  private createFromParams(
+    params: CreateQueryParams,
+    customOperators: CustomOperators,
+  ): this {
     this.select(params.fields);
     this.search(params.search);
-    this.setFilter(params.filter);
-    this.setOr(params.or);
+    this.setFilter(params.filter, customOperators);
+    this.setOr(params.or, customOperators);
     this.setJoin(params.join);
     this.setLimit(params.limit);
     this.setOffset(params.offset);
@@ -229,14 +246,17 @@ export class RequestQueryBuilder {
   private setCondition(
     f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
     cond: 'filter' | 'or',
+    customOperators: CustomOperators,
   ): void {
     if (!isNil(f)) {
       const param = this.checkQueryObjectParam(cond, []);
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(f) && !isString(f[0])
-          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
-          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
+          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) =>
+              this.cond(o, cond, customOperators),
+            )
+          : [this.cond(f as QueryFilter | QueryFilterArr, cond, customOperators)]),
       ];
     }
   }

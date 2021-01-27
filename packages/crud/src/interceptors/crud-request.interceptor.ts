@@ -6,16 +6,16 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import {
+  QueryFilter,
   RequestQueryException,
   RequestQueryParser,
   SCondition,
-  QueryFilter,
 } from '@nestjsx/crud-request';
-import { isNil, isFunction, isArrayFull, hasLength } from '@nestjsx/util';
+import { hasLength, isArrayFull, isFunction, isNil } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
-import { MergedCrudOptions, CrudRequest } from '../interfaces';
+import { CrudRequest, MergedCrudOptions } from '../interfaces';
 import { QueryFilterFunction } from '../types';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
 
@@ -31,7 +31,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
         const { ctrlOptions, crudOptions, action } = this.getCrudInfo(context);
         const parser = RequestQueryParser.create();
 
-        parser.parseQuery(req.query);
+        parser.parseQuery(req.query, crudOptions.operators.custom);
 
         if (!isNil(ctrlOptions)) {
           const search = this.getSearch(parser, crudOptions, action, req.params);
@@ -60,7 +60,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
     crudOptions: Partial<MergedCrudOptions>,
   ): CrudRequest {
     const parsed = parser.getParsed();
-    const { query, routes, params } = crudOptions;
+    const { query, routes, params, operators } = crudOptions;
 
     return {
       parsed,
@@ -68,6 +68,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
         query,
         routes,
         params,
+        operators,
       },
     };
   }
@@ -159,7 +160,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
     crudOptions: Partial<MergedCrudOptions>,
     req: any,
   ): { filter?: any; or?: any } {
-    let auth: any = {};
+    const auth: any = {};
 
     /* istanbul ignore else */
     if (crudOptions.auth) {

@@ -1,23 +1,23 @@
 import {
-  isUndefined,
   isArrayStrings,
-  isStringFull,
-  isObject,
   isEqual,
-  isNumber,
   isNil,
+  isNumber,
+  isObject,
+  isStringFull,
+  isUndefined,
   objKeys,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
-import { ParamsOptions, ParamOption } from './interfaces';
+import { CustomOperators, ParamOption, ParamsOptions } from './interfaces';
 import {
+  ComparisonOperator,
+  CondOperator,
   QueryFields,
   QueryFilter,
-  ComparisonOperator,
   QueryJoin,
   QuerySort,
-  CondOperator,
 } from './types';
 
 export const deprecatedComparisonOperatorsList = [
@@ -44,7 +44,6 @@ export const comparisonOperatorsList = [
 
 export const sortOrdersList = ['ASC', 'DESC'];
 
-const comparisonOperatorsListStr = comparisonOperatorsList.join();
 const sortOrdersListStr = sortOrdersList.join();
 
 export function validateFields(fields: QueryFields): void {
@@ -56,19 +55,27 @@ export function validateFields(fields: QueryFields): void {
 export function validateCondition(
   val: QueryFilter,
   cond: 'filter' | 'or' | 'search',
+  customOperators: CustomOperators,
 ): void {
   if (!isObject(val) || !isStringFull(val.field)) {
     throw new RequestQueryException(
       `Invalid field type in ${cond} condition. String expected`,
     );
   }
-  validateComparisonOperator(val.operator);
+  validateComparisonOperator(val.operator, customOperators);
 }
 
-export function validateComparisonOperator(operator: ComparisonOperator): void {
-  if (!comparisonOperatorsList.includes(operator)) {
+export function validateComparisonOperator(
+  operator: ComparisonOperator,
+  customOperators: CustomOperators = {},
+): void {
+  const extendedComparisonOperatorsList = [
+    ...comparisonOperatorsList,
+    ...Object.keys(customOperators),
+  ];
+  if (!extendedComparisonOperatorsList.includes(operator)) {
     throw new RequestQueryException(
-      `Invalid comparison operator. ${comparisonOperatorsListStr} expected`,
+      `Invalid comparison operator. ${extendedComparisonOperatorsList.join()} expected`,
     );
   }
 }

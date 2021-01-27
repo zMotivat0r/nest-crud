@@ -1,4 +1,5 @@
-import { validateUUID } from '../src/request-query.validator';
+import { RequestQueryException } from '@nestjsx/crud-request';
+import { validateComparisonOperator, validateUUID } from '../src/request-query.validator';
 
 describe('#request-query', () => {
   describe('#validator', () => {
@@ -15,6 +16,26 @@ describe('#request-query', () => {
       });
       it('should pass, 2', () => {
         expect(validateUUID(uuidV4, '')).toBeUndefined();
+      });
+    });
+
+    describe('#validateComparisonOperator', () => {
+      it('should pass with common validator', () => {
+        const withCustom = validateComparisonOperator('gt', {});
+        const withoutCustom = validateComparisonOperator('gt');
+        expect(withCustom).toBeUndefined();
+        expect(withoutCustom).toBeUndefined();
+      });
+      it('should pass with defined custom validator', () => {
+        const withCustom = validateComparisonOperator('definedCustom', {
+          definedCustom: {},
+        });
+        expect(withCustom).toBeUndefined();
+      });
+      it('should not pass with undefined custom validator', () => {
+        expect(validateComparisonOperator.bind(this, 'undefinedCustom')).toThrowError(
+          RequestQueryException,
+        );
       });
     });
   });

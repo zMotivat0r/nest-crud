@@ -1,24 +1,24 @@
 export type QueryFields = string[];
 
-export type QueryFilter = {
+export interface QueryFilter {
   field: string;
   operator: ComparisonOperator;
   value?: any;
-};
+}
 
 export type QueryFilterArr = [string, ComparisonOperator, any?];
 
-export type QueryJoin = {
+export interface QueryJoin {
   field: string;
   select?: QueryFields;
-};
+}
 
 export type QueryJoinArr = [string, QueryFields?];
 
-export type QuerySort = {
+export interface QuerySort {
   field: string;
   order: QuerySortOperator;
-};
+}
 
 export type QuerySortArr = [string, QuerySortOperator];
 
@@ -67,14 +67,14 @@ export enum CondOperator {
   NOT_IN_LOW = '$notinL',
 }
 
-export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator;
+export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator | string;
 
 // new search
 export type SPrimitivesVal = string | number | boolean;
 
-export type SFiledValues = SPrimitivesVal | Array<SPrimitivesVal>;
+export type SFiledValues = SPrimitivesVal | SPrimitivesVal[];
 
-export type SFieldOperator = {
+export interface SFieldOperator {
   $eq?: SFiledValues;
   $ne?: SFiledValues;
   $gt?: SFiledValues;
@@ -100,20 +100,23 @@ export type SFieldOperator = {
   $notinL?: SFiledValues;
   $or?: SFieldOperator;
   $and?: never;
-};
+}
 
-export type SField = SPrimitivesVal | SFieldOperator;
+export type SField =
+  | SPrimitivesVal
+  | SFieldOperator
+  | { [$custom: string]: SFiledValues };
 
-export type SFields = {
+export interface SFields {
   [key: string]: SField | Array<SFields | SConditionAND> | undefined;
   $or?: Array<SFields | SConditionAND>;
   $and?: never;
-};
+}
 
-export type SConditionAND = {
+export interface SConditionAND {
   $and?: Array<SFields | SConditionAND>;
   $or?: never;
-};
+}
 
 export type SConditionKey = '$and' | '$or';
 

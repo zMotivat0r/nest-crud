@@ -1,19 +1,20 @@
 import {
   hasLength,
   hasValue,
-  isString,
   isArrayFull,
   isDate,
   isDateString,
-  isObject,
-  isStringFull,
-  objKeys,
   isNil,
+  isObject,
+  isString,
+  isStringFull,
   ObjectLiteral,
+  objKeys,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
 import {
+  CustomOperators,
   ParamsOptions,
   ParsedRequestParams,
   RequestQueryBuilderOptions,
@@ -83,22 +84,25 @@ export class RequestQueryParser implements ParsedRequestParams {
     };
   }
 
-  parseQuery(query: any): this {
+  parseQuery(query: any, customOperators: CustomOperators = {}): this {
     if (isObject(query)) {
       const paramNames = objKeys(query);
 
       if (hasLength(paramNames)) {
         this._query = query;
         this._paramNames = paramNames;
-        let searchData = this._query[this.getParamNames('search')[0]];
+        const searchData = this._query[this.getParamNames('search')[0]];
 
         this.search = this.parseSearchQueryParam(searchData) as any;
         if (isNil(this.search)) {
           this.filter = this.parseQueryParam(
             'filter',
-            this.conditionParser.bind(this, 'filter'),
+            this.conditionParser.bind(this, 'filter', customOperators),
           );
-          this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
+          this.or = this.parseQueryParam(
+            'or',
+            this.conditionParser.bind(this, 'or', customOperators),
+          );
         }
         this.fields =
           this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
@@ -255,7 +259,11 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
   }
 
-  private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
+  private conditionParser(
+    cond: 'filter' | 'or' | 'search',
+    customOperators: CustomOperators,
+    data: string,
+  ): QueryFilter {
     const isArrayValue = [
       'in',
       'notin',
@@ -265,7 +273,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       '$between',
       '$inL',
       '$notinL',
-    ];
+    ].concat(Object.keys(customOperators).filter((op) => customOperators[op].isArray));
     const isEmptyValue = ['isnull', 'notnull', '$isnull', '$notnull'];
     const param = data.split(this._options.delim);
     const field = param[0];
@@ -283,7 +291,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
 
     const condition: QueryFilter = { field, operator, value };
-    validateCondition(condition, cond);
+    validateCondition(condition, cond, customOperators);
 
     return condition;
   }

@@ -10,6 +10,7 @@ export class CrudConfigService {
     query: {
       alwaysPaginate: false,
     },
+    operators: {},
     routes: {
       getManyBase: { interceptors: [], decorators: [] },
       getOneBase: { interceptors: [], decorators: [] },
@@ -33,19 +34,20 @@ export class CrudConfigService {
   };
 
   static load(config: CrudGlobalConfig = {}) {
-    if (isObjectFull(config.queryParser)) {
-      RequestQueryBuilder.setOptions(config.queryParser);
-    }
-
     const auth = isObjectFull(config.auth) ? config.auth : {};
     const query = isObjectFull(config.query) ? config.query : {};
     const routes = isObjectFull(config.routes) ? config.routes : {};
+    const operators = isObjectFull(config.operators) ? config.operators : {};
     const params = isObjectFull(config.params) ? config.params : {};
     const serialize = isObjectFull(config.serialize) ? config.serialize : {};
 
+    if (isObjectFull(config.queryParser)) {
+      RequestQueryBuilder.setOptions({ ...config.queryParser });
+    }
+
     CrudConfigService.config = deepmerge(
       CrudConfigService.config,
-      { auth, query, routes, params, serialize },
+      { auth, query, routes, operators, params, serialize },
       { arrayMerge: (a, b, c) => b },
     );
   }

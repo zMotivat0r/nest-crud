@@ -1,4 +1,4 @@
-import { Controller, INestApplication } from '@nestjs/common';
+import { BadRequestException, Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,17 +7,17 @@ import 'jest-extended';
 import * as request from 'supertest';
 
 import { Company } from '../../../integration/crud-typeorm/companies';
+import { Note } from '../../../integration/crud-typeorm/notes';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
-import { Note } from '../../../integration/crud-typeorm/notes';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
+import { NotesService } from './__fixture__/notes.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService, UsersService2 } from './__fixture__/users.service';
-import { NotesService } from './__fixture__/notes.service';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-typeorm', () => {
@@ -94,6 +94,17 @@ describe('#crud-typeorm', () => {
       model: { type: Project },
       query: {
         filter: { isActive: true },
+      },
+      operators: {
+        custom: {
+          $customEqual: { query: (field, param) => `${field} = :${param}` },
+          $customArrayIn: {
+            isArray: true,
+            query: (field, param) => {
+              return `${field} IN (:...${param})`;
+            },
+          },
+        },
       },
     })
     @Controller('projects4')
@@ -303,7 +314,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-      it('should return with filter and or, 6', (done) => {
+      it('should return with filter and or, 5', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'isnull' }).query();
         return request(server)
           .get('/projects')
@@ -757,7 +768,7 @@ describe('#crud-typeorm', () => {
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(3);
       });
-      it('should return with search, 17', async () => {
+      it('should return with search, 18', async () => {
         const query = qb
           .search({
             $or: [{ isActive: false }, { id: { $eq: 3 } }],
@@ -863,6 +874,30 @@ describe('#crud-typeorm', () => {
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(7);
+      });
+      it('should return with custom $customEqual search operator', async () => {
+        const query = qb.search({ name: { $customEqual: 'Project7' } }).query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body[0].id).toBe(7);
+      });
+      it('should return with custom $customArrayIn search operator', async () => {
+        const query = qb
+          .search({ name: { $customArrayIn: ['Project7', 'Project8', 'Project9'] } })
+          .query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(3);
+      });
+      it("should throw an exception if custom search operator doesn't exist", async () => {
+        const query = qb
+          .search({ name: { $inexistentOperator: ['project7', 'project8', 'project9'] } })
+          .query();
+        const res = projects4()
+          .query(query)
+          .expect(500);
       });
       it('should search by display column name, but use dbName in sql query', async () => {
         const query = qb.search({ revisionId: 2 }).query();
