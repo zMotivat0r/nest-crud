@@ -107,7 +107,7 @@ Any support is welcome. At least you can give us a star :star:
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CODE_OF_CONDUCT.md)].
+This project exists thanks to all the people who contributed. [[Contribute](CODE_OF_CONDUCT.md)].
 <a href="https://github.com/nestjsx/crud/graphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
