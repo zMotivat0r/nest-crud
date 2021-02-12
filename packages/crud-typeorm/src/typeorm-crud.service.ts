@@ -388,7 +388,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       // In case column is an embedded, use the propertyPath to get complete path
       if (prop.embeddedMetadata) {
-        this.entityColumnsHash[prop.propertyPath] = prop.databasePath;
+        this.entityColumnsHash[prop.propertyPath] = prop.databaseName;
         return prop.propertyPath;
       }
       this.entityColumnsHash[prop.propertyName] = prop.databasePath;
@@ -885,6 +885,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
         return `${i}${this.alias}${i}.${i}${dbColName}${i}`;
       case 2:
+        if (this.entityColumnsHash[field]) {
+          return `${i}${this.alias}${i}.${i}${this.entityColumnsHash[field]}${i}`;
+        }
         return field;
       default:
         return cols.slice(cols.length - 2, cols.length).join('.');

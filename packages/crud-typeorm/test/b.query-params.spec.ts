@@ -338,6 +338,51 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
+      it('should return with nested filter, 1', (done) => {
+        const query = qb
+          .setFilter({ field: 'name.first', operator: '$cont', value: 'first' })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(2);
+            done();
+          });
+      });
+      it('should return with nested filter, 2', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'name.first', operator: '$cont', value: 'first' },
+            { field: 'email', operator: '$cont', value: '1@email' },
+          ])
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(1);
+            done();
+          });
+      });
+      it('should return with nested filter, 3', (done) => {
+        const query = qb
+          .setFilter({ field: 'name.first', operator: '$cont', value: 'first' })
+          .setFilter({ field: 'email', operator: '$cont', value: '1@email' })
+          .setOr({ field: 'email', operator: '$eq', value: '3@email.com' })
+          .query();
+        console.log(query);
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(2);
+            done();
+          });
+      });
     });
 
     describe('#query join', () => {

@@ -96,9 +96,10 @@ export class Seeds1544303473346 implements MigrationInterface {
     // users
     const name: Name = { first: null, last: null };
     const name1: Name = { first: 'firstname1', last: 'lastname1' };
+    const name2: Name = { first: 'firstname2', last: 'lastname2' };
     await this.save(usersRepo, [
       { email: '1@email.com', isActive: true, companyId: 1, profileId: 1, name: name1 },
-      { email: '2@email.com', isActive: true, companyId: 1, profileId: 2, name },
+      { email: '2@email.com', isActive: true, companyId: 1, profileId: 2, name: name2 },
       { email: '3@email.com', isActive: true, companyId: 1, profileId: 3, name },
       { email: '4@email.com', isActive: true, companyId: 1, profileId: 4, name },
       { email: '5@email.com', isActive: true, companyId: 1, profileId: 5, name },
