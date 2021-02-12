@@ -30,6 +30,7 @@ import { UsersService } from './users.service';
   },
 })
 @CrudAuth({
+  property: "user",
   filter: (user: User) => ({
     id: user.id,
   }),
