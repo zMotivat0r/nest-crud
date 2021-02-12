@@ -76,7 +76,7 @@ export class Swagger {
 
   static getExtraModels(target: any): any[] {
     /* istanbul ignore next */
-    return swaggerConst ? R.get(swaggerConst.API_EXTRA_MODELS, target) || [] : [];
+    return swaggerConst ? R.get(swaggerConst.DECORATORS.API_EXTRA_MODELS, target) || [] : [];
   }
 
   static getResponseOk(func: Function): any {
