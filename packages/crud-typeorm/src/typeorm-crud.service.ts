@@ -587,6 +587,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const options = joinOptions[cond.field];
 
     if (!options) {
+      console.warn('relation "' + cond.field + '" not found in allowed relations in the controller. Did you mean to use one of these? [' + Object.keys(joinOptions).join(', ') + ']');
       return true;
     }
 
