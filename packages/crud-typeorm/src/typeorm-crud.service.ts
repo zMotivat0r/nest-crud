@@ -352,7 +352,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // set cache
     /* istanbul ignore else */
     if (options.query.cache && parsed.cache !== 0) {
-      builder.cache(builder.getQueryAndParameters(), options.query.cache);
+      builder.cache(options.query.cache);
     }
 
     return builder;
