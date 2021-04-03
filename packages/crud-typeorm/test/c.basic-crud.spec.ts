@@ -198,7 +198,7 @@ describe('#crud-typeorm', () => {
       },
       query: {
         persist: ['isActive'],
-        cache: 10,
+        cache: 10000,
       },
       validation: {
         transform: true,
@@ -601,6 +601,50 @@ describe('#crud-typeorm', () => {
             expect(res.body.companyId).toBe(1);
             done();
           });
+      });
+      it('should not return cached value while patching', async () => {
+        const dto = { name: { first: 'nameHasBeenPatched' } };
+        const updateUser = () =>
+          request(server)
+            .patch('/companies/2/users/17')
+            .send(dto);
+
+        const query = qb.select(['name.first']).query();
+        const getUserCachedAfterUpdate = () =>
+          request(server)
+            .get('/companies/2/users/17')
+            .query(query);
+
+        const resBeforeUpdateGetUser = await getUserCachedAfterUpdate().expect(200);
+        expect(resBeforeUpdateGetUser.body.name.first).toBe(null);
+
+        const resUpdateUser = await updateUser().expect(200);
+        expect(resUpdateUser.body.name.first).toBe('nameHasBeenPatched');
+
+        const resGetUser = await getUserCachedAfterUpdate().expect(200);
+        expect(resGetUser.body.name.first).toBe('nameHasBeenPatched');
+      });
+      it('should not return cached value while updating', async () => {
+        const dto = { name: { last: 'nameHasBeenUpdated' } };
+        const updateUser = () =>
+          request(server)
+            .put('/companies/2/users/17')
+            .send(dto);
+
+        const query = qb.select(['name.last']).query();
+        const getUserCachedAfterUpdate = () =>
+          request(server)
+            .get('/companies/2/users/17')
+            .query(query);
+
+        const resBeforeUpdateGetUser = await getUserCachedAfterUpdate().expect(200);
+        expect(resBeforeUpdateGetUser.body.name.last).toBe(null);
+
+        const resUpdateUser = await updateUser().expect(200);
+        expect(resUpdateUser.body.name.last).toBe('nameHasBeenUpdated');
+
+        const resGetUser = await getUserCachedAfterUpdate().expect(200);
+        expect(resGetUser.body.name.last).toBe('nameHasBeenUpdated');
       });
     });
 

@@ -177,6 +177,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
+    // disable cache while updating
+    req.options.query.cache = false;
     const found = await this.getOneOrFail(req, returnShallow);
     const toSave = !allowParamsOverride
       ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
@@ -200,6 +202,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async recoverOne(req: CrudRequest): Promise<T> {
+    // disable cache while recovering
+    req.options.query.cache = false;
     const found = await this.getOneOrFail(req, false, true);
     return this.repo.recover(found);
   }
@@ -212,6 +216,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
+    // disable cache while replacing
+    req.options.query.cache = false;
     const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
     const toSave = !allowParamsOverride
       ? { ...(found || {}), ...dto, ...paramsFilters, ...req.parsed.authPersist }
@@ -247,6 +253,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
+    // disable cache while deleting
+    req.options.query.cache = false;
     const found = await this.getOneOrFail(req, returnDeleted);
     const toReturn = returnDeleted
       ? plainToClass(this.entityType, { ...found })
@@ -352,7 +360,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // set cache
     /* istanbul ignore else */
     if (options.query.cache && parsed.cache !== 0) {
-      builder.cache(builder.getQueryAndParameters(), options.query.cache);
+      builder.cache(options.query.cache);
     }
 
     return builder;
