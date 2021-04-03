@@ -198,7 +198,7 @@ describe('#crud-typeorm', () => {
       },
       query: {
         persist: ['isActive'],
-        cache: 10,
+        cache: 0,
       },
       validation: {
         transform: true,
