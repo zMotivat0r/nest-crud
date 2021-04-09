@@ -1043,7 +1043,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return { str, params };
   }
 
-  private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+  protected checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
     /* istanbul ignore if */
     if (
       !Array.isArray(cond.value) ||
@@ -1054,12 +1054,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private checkSqlInjection(field: string): string {
+  protected checkSqlInjection(field: string): string {
     /* istanbul ignore else */
     if (this.sqlInjectionRegEx.length) {
       for (let i = 0; i < this.sqlInjectionRegEx.length; i++) {
         /* istanbul ignore else */
-        if (this.sqlInjectionRegEx[0].test(field)) {
+        if (this.sqlInjectionRegEx[i].test(field)) {
           this.throwBadRequestException(`SQL injection detected: "${field}"`);
         }
       }
