@@ -29,6 +29,6 @@ export interface JoinOption {
   eager?: boolean;
   exclude?: QueryFields;
   persist?: QueryFields;
-  select?: false;
+  select?: boolean;
   required?: boolean;
 }
